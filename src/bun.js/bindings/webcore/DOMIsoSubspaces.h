@@ -22,8 +22,8 @@ public:
     std::unique_ptr<IsoSubspace> m_subspaceForWrappingFunction;
     std::unique_ptr<IsoSubspace> m_subspaceForNapiClass;
     std::unique_ptr<IsoSubspace> m_subspaceForNapiPrototype;
+    std::unique_ptr<IsoSubspace> m_subspaceForJSSQLDatabase;
     std::unique_ptr<IsoSubspace> m_subspaceForJSSQLStatement;
-    std::unique_ptr<IsoSubspace> m_subspaceForJSSQLStatementConstructor;
     std::unique_ptr<IsoSubspace> m_subspaceForJSSinkConstructor;
     std::unique_ptr<IsoSubspace> m_subspaceForJSSinkController;
     std::unique_ptr<IsoSubspace> m_subspaceForJSSink;

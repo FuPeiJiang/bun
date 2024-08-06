@@ -59,14 +59,20 @@
 
 namespace WebCore {
 
-class JSSQLStatementConstructor final : public JSC::JSFunction {
+class JSSQLStatementConstructor final : public JSC::JSNonFinalObject {
 public:
-    using Base = JSC::JSFunction;
+    using Base = JSC::JSNonFinalObject;
     static constexpr unsigned StructureFlags = Base::StructureFlags;
 
-    static JSSQLStatementConstructor* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::Structure* structure);
+    static JSSQLStatementConstructor* create(JSC::VM& vm, JSC::JSGlobalObject* globalObject);
 
     DECLARE_INFO;
+    template<typename CellType, JSC::SubspaceAccess>
+    static JSC::GCClient::IsoSubspace* subspaceFor(JSC::VM& vm)
+    {
+        STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(JSSQLStatementConstructor, Base);
+        return &vm.plainObjectSpace();
+    }
 
     static JSC::Structure* createStructure(JSC::VM& vm, JSC::JSGlobalObject* globalObject, JSC::JSValue prototype)
     {
@@ -74,14 +80,15 @@ public:
     }
 
 private:
-    JSSQLStatementConstructor(JSC::VM& vm, NativeExecutable* native, JSGlobalObject* globalObject, JSC::Structure* structure)
-        : Base(vm, native, globalObject, structure)
+    JSSQLStatementConstructor(JSC::VM& vm, JSC::Structure* structure)
+        : Base(vm, structure)
     {
     }
 
     void finishCreation(JSC::VM&);
 };
-static_assert(sizeof(JSSQLStatementConstructor) == sizeof(JSFunction), "Allocate JSSQLStatementConstructor in JSFunction IsoSubspace");
+static_assert(sizeof(JSSQLStatementConstructor) == sizeof(JSNonFinalObject), "Allocate JSSQLStatementConstructor in JSFunction IsoSubspace");
+Structure* createJSSQLDatabaseStructure(JSGlobalObject* globalObject);
 Structure* createJSSQLStatementStructure(JSGlobalObject* globalObject);
 
 JSValue createJSSQLStatementConstructor(Zig::GlobalObject* globalObject);

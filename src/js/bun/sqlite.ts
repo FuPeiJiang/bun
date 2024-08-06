@@ -265,7 +265,7 @@ class Database {
           }
         }
 
-        this.#handle = Database.#deserialize(
+        this.#raw = Database.#deserialize(
           filenameGiven,
           typeof options === "object" && options
             ? !!options.readonly
@@ -325,23 +325,20 @@ class Database {
       initializeSQL();
     }
 
-    this.#handle = SQL.open(anonymous ? ":memory:" : filename, flags, this);
+    this.#raw = SQL.open(anonymous ? ":memory:" : filename, flags, this);
     this.filename = filename;
   }
 
   #internalFlags = 0;
-  #handle;
+  #raw;
   #cachedQueriesKeys = [];
   #cachedQueriesLengths = [];
   #cachedQueriesValues = [];
   filename;
   #hasClosed = false;
-  get handle() {
-    return this.#handle;
-  }
 
   get inTransaction() {
-    return SQL.isInTransaction(this.#handle);
+    return this.#raw.isInTransaction();
   }
 
   static open(filename, options) {
@@ -349,11 +346,11 @@ class Database {
   }
 
   loadExtension(name, entryPoint) {
-    return SQL.loadExtension(this.#handle, name, entryPoint);
+    return this.#raw.loadExtension(name, entryPoint);
   }
 
   serialize(optionalName) {
-    return SQL.serialize(this.#handle, optionalName || "main");
+    return this.#raw.serialize(optionalName || "main");
   }
 
   static #deserialize(serialized, isReadOnly = false) {
@@ -383,19 +380,17 @@ class Database {
   }
 
   fileControl(cmd, arg) {
-    const handle = this.#handle;
-
     if (arguments.length <= 2) {
-      return SQL.fcntl(handle, null, arguments[0], arguments[1]);
+      return this.#raw.fcntl(null, arguments[0], arguments[1]);
     }
 
-    return SQL.fcntl(handle, ...arguments);
+    return this.#raw.fcntl(...arguments);
   }
 
   close(throwOnError = false) {
     this.clearQueryCache();
     this.#hasClosed = true;
-    return SQL.close(this.#handle, throwOnError);
+    return this.#raw.close(throwOnError);
   }
   clearQueryCache() {
     for (let item of this.#cachedQueriesValues) {
@@ -408,20 +403,20 @@ class Database {
 
   run(query, ...params) {
     if (params.length === 0) {
-      SQL.run(this.#handle, this.#internalFlags, internalFieldTuple, query);
+      this.#raw.run(this.#internalFlags, internalFieldTuple, query);
       return createChangesObject();
     }
 
     var arg0 = params[0];
     !isArray(arg0) && (!arg0 || typeof arg0 !== "object" || isTypedArray(arg0))
-      ? SQL.run(this.#handle, this.#internalFlags, internalFieldTuple, query, params)
-      : SQL.run(this.#handle, this.#internalFlags, internalFieldTuple, query, ...params);
+      ? this.#raw.run(this.#internalFlags, internalFieldTuple, query, params)
+      : this.#raw.run(this.#internalFlags, internalFieldTuple, query, ...params);
 
     return createChangesObject();
   }
 
   prepare(query, params, flags) {
-    return new Statement(SQL.prepare(this.#handle, query, params, flags || 0, this.#internalFlags));
+    return new Statement(this.#raw.prepare(query, params, flags || 0, this.#internalFlags));
   }
 
   static MAX_QUERY_CACHE_SIZE = 20;
